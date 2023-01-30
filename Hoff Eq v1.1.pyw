@@ -1,5 +1,5 @@
-from Tkinter import *
-import tkMessageBox as box
+from tkinter import *
+import tkinter.messagebox as box
 
 col_bg = "#EEEEDB" # Background Col
 col_fg = "#003b6f" # Foreground Col
