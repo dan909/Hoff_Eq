@@ -8,26 +8,47 @@ col_bt = "#088DA5" # Button Col
 col_et = "#000b16" # Entry text
 col_eb = "#DEDEB8" # Entry Background
 
-def Hoff(ion, presh, temp, units, **input):
-    if units == "celsius":
+def Hoff(ion, presh, preshu, temp, units, **input): 
+    if units == "Celsius":
         kelvin = temp + 273.15
-    elif units == "kelvin":
+    elif units == "Kelvin":
         kelvin = temp
-    elif units == "fahrenheit":
+    elif units == "Fahrenheit":
         kelvin = (temp + 459.67) / 1.8
     else:
         return "Temp ERROR"
 
+    if preshu == "L·atm/mol·K":
+        persh_atm = presh
+    elif preshu == "J/mol·K":
+        persh_atm = presh * 0.0821
+    else:
+        return "Temp ERROR"
+
     if 'mol' in input:
-        w_pot = (ion * input['mol']) * (kelvin * presh)
+        What_in = "Molarity"
+        What_in_v = input['mol']
+        What_in_u = "M"
+        w_pot = (ion * What_in_v) * (kelvin * persh_atm)
         w_pot = (0 - w_pot) / 10
-        return str(w_pot) + "MPa"
+        What_out = "Water potenchal"
+        What_v = w_pot
+        Waht_u = "MPa"
     elif 'pot' in input:
-        w_pot = (0 - input['pot']) * 10
-        molarty = w_pot /(kelvin * presh * ion)
-        return str(molarty) + "M"
+        What_in = "Water potenchal"
+        What_in_v = input['pot']
+        What_in_u = "MPa"
+        w_pot = (0 - What_in_v) * 10
+        molarty = w_pot /(kelvin * persh_atm * ion)
+        What_out = "Molarity"
+        What_v = molarty
+        Waht_u = "M"
     else:
         return "Args Error"
+
+    out = f"Given a {What_in} of {What_in_v :,.{2}f} {What_in_u} \nWith Inputs:\n Number of Ions = {ion :,.{0}f} \n Temperature = {temp :,.{2}f} ({units}) \n Pressure = {presh :,.{2}f} {preshu}\n"
+    out = out + f"\nGivs a {What_out} of {What_v :,.{2}f} {Waht_u}"
+    return out
 
 def not_float(value):
   try:
@@ -37,7 +58,7 @@ def not_float(value):
     return True
 
 
-def valueGET(ion, presh, temp, units, molpot, mp):
+def valueGET(ion, presh, preshu, temp, units, molpot, mp):
     if ion == "" or presh == "" or temp == "" or molpot == "":
         box.showerror("Basic Error", "You Need to Write in the Boxes")
     elif not_float(ion) or not_float(presh) or not_float(temp) or not_float(molpot):
@@ -50,15 +71,15 @@ def valueGET(ion, presh, temp, units, molpot, mp):
         box.showerror("Rep Error", "Inappropriate Number for Temp")
     else:
         if float(presh) != 0.0831:
-            box.showwarning("Warning", "You are not using the\ndefault presser constant")
+            box.showwarning("Warning", "You are not using the\ndefault pressure constant (0.0831 atm L/mol K or 8.314 J/mol*K)")
         if mp == "molarity":
-            final = Hoff(float(ion), float(presh), float(temp), str(units), mol=float(molpot))
-            box.showinfo("Answer", "Pressure assumes 'pressure pot' = 0\nW pot = " + final)
+            final = Hoff(float(ion), float(presh), str(preshu), float(temp), str(units), mol=float(molpot))
+            box.showinfo("Answer", final)
         elif mp == "W potential":
-            final = Hoff(float(ion), float(presh), float(temp), str(units), pot=float(molpot))
-            box.showinfo("Answer", "Pressure assumes 'pressure pot' = 0\nMolarity = " + final)
+            final = Hoff(float(ion), float(presh), str(preshu), float(temp), str(units), pot=float(molpot))
+            box.showinfo("Answer", final)
         else:
-            box.showerror("Unknown Error", "Weird")
+            box.showerror("Unknown Error", "Weird?!?")
 
 
 class Example(Frame):
@@ -67,7 +88,7 @@ class Example(Frame):
         Frame.__init__(self, parent, background=col_bg)
 
         self.parent = parent
-        self.parent.title("Rep Time Calculator")
+        self.parent.title("Hoff equation")
         self.pack(fill=BOTH, expand=1)
         self.centerWindow()
 
@@ -87,7 +108,7 @@ class Example(Frame):
         quitButton.place(x=250, y=120)
 
         inform = Button(self, text="Calculate", fg=col_fg, bg=col_bt,
-                        command=lambda: valueGET(inputs_ion.get(), inputs_pre.get(), inputs_temp.get(), opt.get(), inputs_m_p.get(), m_p.get()))
+                        command=lambda: valueGET(inputs_ion.get(), inputs_pre.get(), pre.get(), inputs_temp.get(), opt.get(), inputs_m_p.get(), m_p.get()))
         inform.place(x=5, y=120)
 
         m_p = StringVar(self)
@@ -107,26 +128,32 @@ class Example(Frame):
         inputs_ion.insert(0, 1)
 
         opt = StringVar(self)
-        opt.set("celsius") # initial value
-        lable_opt = Label(self, text="Temp", fg=col_fg, bg=col_bg)
+        opt.set("Celsius") # initial value
+        lable_opt = Label(self, text="Temperature", fg=col_fg, bg=col_bg)
         lable_opt.grid(row=3, column=1)
         inputs_temp = Entry(self, bd =1, fg=col_et, bg=col_eb, width=8)
         inputs_temp.grid(row=3, column=2)
         inputs_temp.insert(0, 25)
-        option = OptionMenu(self, opt, "celsius", "kelvin", "fahrenheit")
+        option = OptionMenu(self, opt, "Celsius", "Kelvin", "Fahrenheit")
         option.grid(row=3, column=3)
         option.config(bd=1,fg=col_fg, bg=col_bt)
 
+        pre = StringVar(self)
+        pre.set("L·atm/mol·K") # initial value
         lable_pre = Label(self, text="Pressure", fg=col_fg, bg=col_bg)
         lable_pre.grid(row=4, column=1)
         inputs_pre = Entry(self, bd =1, fg=col_et, bg=col_eb, width=8)
         inputs_pre.grid(row=4, column=2)
         inputs_pre.insert(0, 0.0831)
+        opt_pre = OptionMenu(self, pre, "L·atm/mol·K", "J/mol·K")
+        opt_pre.grid(row=4, column=3)
+        opt_pre.config(bd=1,fg=col_fg, bg=col_bt)
 
     def onQuest(self):
-        result = box.askquestion("Quit", "Did you intend to Quit?\n(is this app not nifty?)")
+        result = box.askquestion("Quit", "Did you intend to Quit?\n")
         if result == 'yes':
-            self.quit()
+            self.parent.quit()
+            self.parent.destroy()
         else:
             return True
 
