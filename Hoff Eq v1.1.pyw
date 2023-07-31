@@ -31,11 +31,11 @@ def Hoff(ion, presh, preshu, temp, units, **input):
         What_in_u = "M"
         w_pot = (ion * What_in_v) * (kelvin * persh_atm)
         w_pot = (0 - w_pot) / 10
-        What_out = "Water potenchal"
+        What_out = "Water potential"
         What_v = w_pot
         Waht_u = "MPa"
     elif 'pot' in input:
-        What_in = "Water potenchal"
+        What_in = "Water potential"
         What_in_v = input['pot']
         What_in_u = "MPa"
         w_pot = (0 - What_in_v) * 10
